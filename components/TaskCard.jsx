@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import StuckButton from "@/components/StuckButton";
 
 function priorityDotClass(priority) {
   const p = String(priority || "").toLowerCase();
@@ -46,6 +47,8 @@ export default function TaskCard({ task, taskNumber, totalTasks, onNext }) {
           placeholder="Type a short answer…"
         />
       </label>
+
+      <StuckButton taskInstruction={task.instruction} studentResponse={checkAnswer} />
 
       <div className="flex justify-end pt-2">
         <button
