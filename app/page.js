@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import * as pdfjsLib from 'pdfjs-dist';
 import TaskCard from "@/components/TaskCard";
+import ProgressBar from "@/components/ProgressBar";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdfjs-dist/build/pdf.worker.min.js';
 
@@ -187,17 +188,22 @@ export default function Home() {
         )}
 
         {inTaskFlow && (
-          <TaskCard
-            key={currentIndex}
-            task={tasks[currentIndex]}
-            taskNumber={currentIndex + 1}
-            totalTasks={tasks.length}
-            onNext={handleNext}
-          />
+          <div className="space-y-8">
+            <ProgressBar completed={currentIndex} total={tasks.length} />
+            <TaskCard
+              key={currentIndex}
+              task={tasks[currentIndex]}
+              taskNumber={currentIndex + 1}
+              totalTasks={tasks.length}
+              onNext={handleNext}
+            />
+          </div>
         )}
 
         {allDone && (
-          <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200/70">
+          <div className="space-y-8">
+            <ProgressBar completed={tasks.length} total={tasks.length} />
+            <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200/70">
             <p className="text-lg text-slate-700">You&apos;ve walked through every step for this assignment.</p>
             <button
               type="button"
@@ -206,6 +212,7 @@ export default function Home() {
             >
               Plan another assignment
             </button>
+            </div>
           </div>
         )}
       </div>
