@@ -5,10 +5,10 @@ export default function ProgressBar({ completed, total }) {
   const isComplete = safeTotal > 0 && safeCompleted === safeTotal;
 
   return (
-    <div className="max-w-2xl mx-auto w-full">
-      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200">
+    <div className="w-full">
+      <div className="app-progress-track">
         <div
-          className="h-full rounded-full bg-emerald-500 transition-[width] duration-500 ease-out"
+          className="app-progress-fill"
           style={{ width: `${percent}%` }}
           role="progressbar"
           aria-valuenow={safeCompleted}
@@ -18,12 +18,12 @@ export default function ProgressBar({ completed, total }) {
         />
       </div>
 
-      <p className="mt-3 text-center text-sm font-medium text-slate-600">
+      <p className="mt-4 text-center text-sm font-medium app-text-muted">
         {safeCompleted} of {safeTotal} tasks done
       </p>
 
       {isComplete && (
-        <p className="mt-4 text-center text-base font-medium text-emerald-700">
+        <p className="mt-5 text-center text-base font-medium app-accent-text">
           You&apos;re ready to start writing! Good luck. ✅
         </p>
       )}

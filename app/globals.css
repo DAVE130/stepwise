@@ -1,3 +1,227 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  .app-root {
+    @apply min-h-screen bg-slate-50 text-slate-900 antialiased;
+  }
+
+  .app-root.text-size-large {
+    font-size: 1.125rem;
+  }
+
+  .app-root.text-size-xlarge {
+    font-size: 1.3125rem;
+  }
+
+  .app-root.high-contrast {
+    @apply bg-black text-white;
+  }
+
+  .app-header {
+    @apply border-b border-slate-200/80 bg-white/80 backdrop-blur-sm;
+  }
+
+  .high-contrast .app-header {
+    @apply border-zinc-700 bg-zinc-950;
+  }
+
+  .app-spinner {
+    @apply border-slate-200 border-t-slate-700;
+  }
+
+  .high-contrast .app-spinner {
+    @apply border-zinc-600 border-t-lime-400;
+  }
+
+  .priority-dot-high {
+    @apply bg-emerald-500;
+  }
+
+  .high-contrast .priority-dot-high {
+    @apply bg-lime-400;
+  }
+
+  .priority-dot-medium {
+    @apply bg-amber-400;
+  }
+
+  .high-contrast .priority-dot-medium {
+    @apply bg-amber-300;
+  }
+
+  .priority-dot-low {
+    @apply bg-slate-400;
+  }
+
+  .high-contrast .priority-dot-low {
+    @apply bg-zinc-400;
+  }
+}
+
+@layer components {
+  .app-container {
+    @apply mx-auto w-full max-w-[720px] px-4;
+  }
+
+  .app-surface {
+    @apply rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200/70 md:p-10;
+  }
+
+  .high-contrast .app-surface {
+    @apply bg-zinc-900 text-white ring-zinc-600 shadow-none;
+  }
+
+  .app-muted-box {
+    @apply rounded-xl bg-slate-50 px-5 py-5 text-slate-700 ring-1 ring-slate-100;
+  }
+
+  .high-contrast .app-muted-box {
+    @apply bg-zinc-800 text-white ring-zinc-600;
+  }
+
+  .app-input {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-inner outline-none transition placeholder:text-slate-400 focus:border-slate-300 focus:ring-2 focus:ring-slate-300 disabled:opacity-60;
+  }
+
+  .high-contrast .app-input {
+    @apply border-zinc-500 bg-zinc-950 text-white placeholder:text-zinc-400 focus:border-lime-400 focus:ring-lime-400;
+  }
+
+  .app-textarea {
+    @apply app-input min-h-[200px] resize-y py-4 leading-relaxed;
+  }
+
+  .high-contrast .app-textarea {
+    @apply bg-zinc-950;
+  }
+
+  .app-btn {
+    @apply rounded-xl font-semibold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .high-contrast .app-btn {
+    @apply focus:ring-offset-black;
+  }
+
+  .app-btn-primary {
+    @apply app-btn bg-slate-900 px-6 py-3 text-sm text-white hover:bg-slate-800 focus:ring-slate-400;
+  }
+
+  .high-contrast .app-btn-primary {
+    @apply bg-lime-400 text-black hover:bg-lime-300 focus:ring-lime-300;
+  }
+
+  .app-btn-secondary {
+    @apply app-btn border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-800 hover:bg-slate-50 focus:ring-slate-300;
+  }
+
+  .high-contrast .app-btn-secondary {
+    @apply border-zinc-500 bg-zinc-900 text-white hover:bg-zinc-800 focus:ring-lime-400;
+  }
+
+  .app-btn-danger {
+    @apply app-btn bg-red-600 px-5 py-2.5 text-sm text-white hover:bg-red-700 focus:ring-red-400;
+  }
+
+  .high-contrast .app-btn-danger {
+    @apply bg-red-500 text-white hover:bg-red-400 focus:ring-red-300;
+  }
+
+  .app-btn-toggle {
+    @apply app-btn border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 focus:ring-slate-400;
+  }
+
+  .high-contrast .app-btn-toggle {
+    @apply border-zinc-500 bg-zinc-900 text-white hover:bg-zinc-800 focus:ring-lime-400;
+  }
+
+  .app-btn-toggle[aria-pressed="true"] {
+    @apply border-slate-400 bg-slate-100 ring-1 ring-slate-300;
+  }
+
+  .high-contrast .app-btn-toggle[aria-pressed="true"] {
+    @apply border-lime-400 bg-zinc-800 text-lime-300 ring-lime-400;
+  }
+
+  .app-feedback-amber {
+    @apply rounded-xl bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-950 ring-1 ring-amber-100;
+  }
+
+  .high-contrast .app-feedback-amber {
+    @apply bg-zinc-800 text-lime-200 ring-lime-500;
+  }
+
+  .app-feedback-rose {
+    @apply rounded-xl bg-rose-50 px-5 py-5 text-slate-800 ring-1 ring-rose-100;
+  }
+
+  .high-contrast .app-feedback-rose {
+    @apply bg-zinc-800 text-white ring-lime-500;
+  }
+
+  .app-feedback-rose-title {
+    @apply text-rose-800;
+  }
+
+  .high-contrast .app-feedback-rose-title {
+    @apply text-lime-300;
+  }
+
+  .app-feedback-error {
+    @apply rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-100;
+  }
+
+  .high-contrast .app-feedback-error {
+    @apply bg-zinc-900 text-red-300 ring-red-400;
+  }
+
+  .app-text-muted {
+    @apply text-slate-600;
+  }
+
+  .high-contrast .app-text-muted {
+    @apply text-zinc-300;
+  }
+
+  .app-text-subtle {
+    @apply text-slate-500;
+  }
+
+  .high-contrast .app-text-subtle {
+    @apply text-zinc-400;
+  }
+
+  .app-heading {
+    @apply font-semibold tracking-tight text-slate-900;
+  }
+
+  .high-contrast .app-heading {
+    @apply text-white;
+  }
+
+  .app-progress-track {
+    @apply h-3 w-full overflow-hidden rounded-full bg-slate-200;
+  }
+
+  .high-contrast .app-progress-track {
+    @apply bg-zinc-700;
+  }
+
+  .app-progress-fill {
+    @apply h-full rounded-full bg-emerald-500 transition-[width] duration-500 ease-out;
+  }
+
+  .high-contrast .app-progress-fill {
+    @apply bg-lime-400;
+  }
+
+  .app-accent-text {
+    @apply text-emerald-700;
+  }
+
+  .high-contrast .app-accent-text {
+    @apply text-lime-300;
+  }
+}

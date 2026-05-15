@@ -1,11 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
-import * as pdfjsLib from 'pdfjs-dist';
-import TaskCard from "@/components/TaskCard";
+import * as pdfjsLib from "pdfjs-dist";
+import AccessibilityToggles from "@/components/AccessibilityToggles";
 import ProgressBar from "@/components/ProgressBar";
+import TaskCard from "@/components/TaskCard";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdfjs-dist/build/pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc = "pdfjs-dist/build/pdf.worker.min.js";
+
+const FONT_SIZE_CLASSES = ["", "text-size-large", "text-size-xlarge"];
 
 async function extractTextFromPdf(file) {
   const data = await file.arrayBuffer();
@@ -34,10 +37,24 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [uploadedPdfName, setUploadedPdfName] = useState(null);
   const [pdfParsing, setPdfParsing] = useState(false);
+  const [fontSizeLevel, setFontSizeLevel] = useState(0);
+  const [highContrast, setHighContrast] = useState(false);
   const fileInputRef = useRef(null);
 
   const inTaskFlow = tasks.length > 0 && currentIndex < tasks.length;
   const allDone = tasks.length > 0 && currentIndex >= tasks.length;
+
+  const rootClassName = [
+    "app-root",
+    FONT_SIZE_CLASSES[fontSizeLevel],
+    highContrast ? "high-contrast" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  function cycleFontSize() {
+    setFontSizeLevel((level) => (level + 1) % 3);
+  }
 
   async function handleBreakDown(e) {
     e.preventDefault();
@@ -103,75 +120,79 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-14 text-slate-900 md:py-20">
-      <div className="mx-auto max-w-3xl space-y-12">
-        <header className="text-center">
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
-            StepWise
-          </h1>
-          <p className="mt-3 text-lg text-slate-600">Paste an assignment. We turn it into small steps.</p>
-        </header>
+    <div className={rootClassName}>
+      <header className="app-header">
+        <div className="app-container flex items-start justify-between gap-6 py-6 md:py-8">
+          <div className="min-w-0 space-y-2 pr-2">
+            <h1 className="app-heading text-2xl md:text-3xl">StepWise</h1>
+            <p className="app-text-muted text-base leading-relaxed">
+              One task at a time. No overwhelm.
+            </p>
+          </div>
+          <AccessibilityToggles
+            fontSizeLevel={fontSizeLevel}
+            onFontSizeCycle={cycleFontSize}
+            highContrast={highContrast}
+            onHighContrastToggle={() => setHighContrast((on) => !on)}
+          />
+        </div>
+      </header>
 
+      <main className="app-container space-y-12 py-12 md:space-y-14 md:py-16">
         {!inTaskFlow && !allDone && (
-          <form
-            onSubmit={handleBreakDown}
-            className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200/70 md:p-10"
-          >
-            <div className="mb-3">
-              <span className="text-sm font-medium text-slate-600">Your assignment</span>
-            </div>
-
-            <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
-              <label className="block min-w-0 flex-1">
-                <span className="sr-only">Assignment text</span>
+          <form onSubmit={handleBreakDown} className="app-surface space-y-8">
+            <div>
+              <label htmlFor="assignment" className="mb-3 block text-sm font-medium app-text-muted">
+                Your assignment
+              </label>
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
                 <textarea
+                  id="assignment"
                   value={assignment}
                   onChange={(e) => setAssignment(e.target.value)}
                   disabled={loading || pdfParsing}
-                  rows={10}
-                  className="min-h-[12rem] w-full resize-y rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-4 text-base leading-relaxed text-slate-900 shadow-inner outline-none transition placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:ring-2 focus:ring-slate-200 disabled:opacity-60 lg:min-h-[14rem]"
+                  className="app-textarea min-w-0 flex-1"
                   placeholder="Paste the full instructions from your teacher here…"
                 />
-              </label>
-
-              <div className="flex shrink-0 flex-col gap-2 lg:w-44">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="application/pdf,.pdf"
-                  className="sr-only"
-                  onChange={handlePdfSelected}
-                  disabled={loading || pdfParsing}
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={loading || pdfParsing}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {pdfParsing ? "Reading PDF…" : "Upload PDF"}
-                </button>
-                {uploadedPdfName && !pdfParsing && (
-                  <p className="text-xs leading-snug text-slate-500" title={uploadedPdfName}>
-                    <span className="font-medium text-slate-600">Loaded:</span>{" "}
-                    <span className="break-all text-slate-700">{uploadedPdfName}</span>
-                  </p>
-                )}
+                <div className="flex shrink-0 flex-col gap-3 lg:w-40">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    className="sr-only"
+                    onChange={handlePdfSelected}
+                    disabled={loading || pdfParsing}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={loading || pdfParsing}
+                    className="app-btn-secondary w-full"
+                  >
+                    {pdfParsing ? "Reading PDF…" : "Upload PDF"}
+                  </button>
+                  {uploadedPdfName && !pdfParsing && (
+                    <p className="text-xs leading-snug app-text-subtle" title={uploadedPdfName}>
+                      <span className="font-medium">Loaded:</span>{" "}
+                      <span className="break-all">{uploadedPdfName}</span>
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col items-stretch gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="submit"
                 disabled={loading || pdfParsing || !assignment.trim()}
-                className="rounded-xl bg-slate-900 px-8 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+                className="app-btn-primary px-8 py-3.5"
               >
                 Break it down
               </button>
               {loading && (
-                <div className="flex items-center justify-center gap-3 text-slate-600 sm:justify-end">
+                <div className="flex items-center justify-center gap-3 app-text-muted sm:justify-end">
                   <span
-                    className="h-9 w-9 shrink-0 rounded-full border-2 border-slate-200 border-t-slate-700 animate-spin"
+                    className="app-spinner h-8 w-8 shrink-0 rounded-full border-2 animate-spin"
                     aria-hidden
                   />
                   <span className="text-sm font-medium">Talking to Gemma…</span>
@@ -179,16 +200,12 @@ export default function Home() {
               )}
             </div>
 
-            {error && (
-              <p className="mt-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-100">
-                {error}
-              </p>
-            )}
+            {error && <p className="app-feedback-error">{error}</p>}
           </form>
         )}
 
         {inTaskFlow && (
-          <div className="space-y-8">
+          <div className="space-y-10">
             <ProgressBar completed={currentIndex} total={tasks.length} />
             <TaskCard
               key={currentIndex}
@@ -201,21 +218,19 @@ export default function Home() {
         )}
 
         {allDone && (
-          <div className="space-y-8">
+          <div className="space-y-10">
             <ProgressBar completed={tasks.length} total={tasks.length} />
-            <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200/70">
-            <p className="text-lg text-slate-700">You&apos;ve walked through every step for this assignment.</p>
-            <button
-              type="button"
-              onClick={handlePlanAnother}
-              className="mt-8 rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
-            >
-              Plan another assignment
-            </button>
+            <div className="app-surface space-y-8 text-center">
+              <p className="text-lg leading-relaxed app-text-muted">
+                You&apos;ve walked through every step for this assignment.
+              </p>
+              <button type="button" onClick={handlePlanAnother} className="app-btn-primary">
+                Plan another assignment
+              </button>
             </div>
           </div>
         )}
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

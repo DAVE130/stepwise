@@ -33,38 +33,31 @@ export default function StuckButton({ taskInstruction, studentResponse }) {
   }
 
   return (
-    <div className="mb-8">
+    <div className="space-y-4">
       <button
         type="button"
         onClick={handleStuck}
         disabled={loading}
-        className="rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        className="app-btn-danger"
       >
         {loading ? "Thinking of another way…" : "I'm stuck"}
       </button>
 
       {loading && (
-        <div className="mt-4 flex items-center gap-3 text-sm text-slate-600">
+        <div className="flex items-center gap-3 text-sm app-text-muted">
           <span
-            className="h-6 w-6 shrink-0 rounded-full border-2 border-rose-200 border-t-rose-600 animate-spin"
+            className="app-spinner h-6 w-6 shrink-0 rounded-full border-2 animate-spin"
             aria-hidden
           />
           <span>Finding a new way to explain this…</span>
         </div>
       )}
 
-      {error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800 ring-1 ring-red-100">
-          {error}
-        </p>
-      )}
+      {error && <p className="app-feedback-error">{error}</p>}
 
       {explanation && !loading && (
-        <div
-          className="mt-4 rounded-xl bg-rose-50 px-5 py-5 text-slate-800 ring-1 ring-rose-100"
-          aria-live="polite"
-        >
-          <p className="text-sm font-medium text-rose-800">Another way to look at it</p>
+        <div className="app-feedback-rose" aria-live="polite">
+          <p className="app-feedback-rose-title text-sm font-medium">Another way to look at it</p>
           <p className="mt-3 whitespace-pre-wrap text-base leading-relaxed">{explanation}</p>
         </div>
       )}
