@@ -9,10 +9,14 @@ import TaskCard from "@/components/TaskCard";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "pdfjs-dist/build/pdf.worker.min.js";
 
 const FONT_SIZE_CLASSES = ["", "text-size-large", "text-size-xlarge"];
+const MIN_PDF_TEXT_LENGTH = 50;
 
-async function extractTextFromPdf(file) {
+async function loadPdf(file) {
   const data = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data }).promise;
+  return pdfjsLib.getDocument({ data }).promise;
+}
+
+async function extractTextFromPdf(pdf) {
   const chunks = [];
 
   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
@@ -29,6 +33,26 @@ async function extractTextFromPdf(file) {
   return chunks.join("\n\n").trim();
 }
 
+async function renderPdfPageToBase64(pdf, pageNumber = 1) {
+  const page = await pdf.getPage(pageNumber);
+  const viewport = page.getViewport({ scale: 2 });
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Could not create canvas for PDF rendering");
+  }
+
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+
+  await page.render({ canvasContext: context, viewport }).promise;
+
+  const dataUrl = canvas.toDataURL("image/png");
+  const imageBase64 = dataUrl.replace(/^data:image\/png;base64,/, "");
+
+  return { imageBase64, mimeType: "image/png" };
+}
+
 export default function Home() {
   const [assignment, setAssignment] = useState("");
   const [tasks, setTasks] = useState([]);
@@ -37,6 +61,8 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [uploadedPdfName, setUploadedPdfName] = useState(null);
   const [pdfParsing, setPdfParsing] = useState(false);
+  const [pdfParsingImage, setPdfParsingImage] = useState(false);
+  const [pdfScanImage, setPdfScanImage] = useState(null);
   const [fontSizeLevel, setFontSizeLevel] = useState(0);
   const [highContrast, setHighContrast] = useState(false);
   const fileInputRef = useRef(null);
@@ -61,10 +87,17 @@ export default function Home() {
     setError(null);
     setLoading(true);
     try {
+      const body = pdfScanImage
+        ? {
+            imageBase64: pdfScanImage.imageBase64,
+            mimeType: pdfScanImage.mimeType,
+          }
+        : { assignment };
+
       const res = await fetch("/api/decode", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assignment }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -93,18 +126,30 @@ export default function Home() {
 
     setError(null);
     setPdfParsing(true);
+    setPdfParsingImage(false);
     try {
-      const text = await extractTextFromPdf(file);
-      if (!text) {
-        throw new Error("No readable text found in that PDF.");
+      const pdf = await loadPdf(file);
+      const text = await extractTextFromPdf(pdf);
+
+      if (text.length >= MIN_PDF_TEXT_LENGTH) {
+        setAssignment(text);
+        setPdfScanImage(null);
+        setUploadedPdfName(file.name);
+        return;
       }
-      setAssignment(text);
+
+      setPdfParsingImage(true);
+      const image = await renderPdfPageToBase64(pdf, 1);
+      setPdfScanImage(image);
+      setAssignment("");
       setUploadedPdfName(file.name);
     } catch (err) {
       setUploadedPdfName(null);
+      setPdfScanImage(null);
       setError(err instanceof Error ? err.message : "Could not read that PDF.");
     } finally {
       setPdfParsing(false);
+      setPdfParsingImage(false);
     }
   }
 
@@ -117,7 +162,15 @@ export default function Home() {
     setCurrentIndex(0);
     setError(null);
     setUploadedPdfName(null);
+    setPdfScanImage(null);
   }
+
+  const canBreakDown = Boolean(assignment.trim() || pdfScanImage);
+  const pdfButtonLabel = pdfParsingImage
+    ? "Reading image…"
+    : pdfParsing
+      ? "Reading PDF…"
+      : "Upload PDF";
 
   return (
     <div className={rootClassName}>
@@ -149,7 +202,10 @@ export default function Home() {
                 <textarea
                   id="assignment"
                   value={assignment}
-                  onChange={(e) => setAssignment(e.target.value)}
+                  onChange={(e) => {
+                    setAssignment(e.target.value);
+                    if (e.target.value.trim()) setPdfScanImage(null);
+                  }}
                   disabled={loading || pdfParsing}
                   className="app-textarea min-w-0 flex-1"
                   placeholder="Paste the full instructions from your teacher here…"
@@ -169,12 +225,15 @@ export default function Home() {
                     disabled={loading || pdfParsing}
                     className="app-btn-secondary w-full"
                   >
-                    {pdfParsing ? "Reading PDF…" : "Upload PDF"}
+                    {pdfButtonLabel}
                   </button>
                   {uploadedPdfName && !pdfParsing && (
                     <p className="text-xs leading-snug app-text-subtle" title={uploadedPdfName}>
                       <span className="font-medium">Loaded:</span>{" "}
                       <span className="break-all">{uploadedPdfName}</span>
+                      {pdfScanImage && (
+                        <span className="mt-1 block">Scanned PDF — ready to break down from image.</span>
+                      )}
                     </p>
                   )}
                 </div>
@@ -184,7 +243,7 @@ export default function Home() {
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="submit"
-                disabled={loading || pdfParsing || !assignment.trim()}
+                disabled={loading || pdfParsing || !canBreakDown}
                 className="app-btn-primary px-8 py-3.5"
               >
                 Break it down

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { chat } from "@/lib/llm";
 import { getCheckerPrompt } from "@/lib/prompts";
 
 function parseCheckerResponse(raw) {
@@ -33,34 +34,12 @@ export async function POST(request) {
       return NextResponse.json({ error: "studentAnswer must be a string" }, { status: 400 });
     }
 
-    const ollamaResponse = await fetch("http://localhost:11434/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "gemma3:27b",
-        messages: [
-          {
-            role: "user",
-            content: getCheckerPrompt(taskInstruction, checkQuestion, studentAnswer),
-          },
-        ],
-        stream: false,
-      }),
-    });
-
-    if (!ollamaResponse.ok) {
-      const detail = await ollamaResponse.text();
-      return NextResponse.json(
-        { error: "Ollama request failed", status: ollamaResponse.status, detail },
-        { status: 502 },
-      );
-    }
-
-    const data = await ollamaResponse.json();
-    const raw = data.message?.content;
-    if (typeof raw !== "string") {
-      return NextResponse.json({ error: "Unexpected Ollama response shape" }, { status: 502 });
-    }
+    const raw = await chat([
+      {
+        role: "user",
+        content: getCheckerPrompt(taskInstruction, checkQuestion, studentAnswer),
+      },
+    ]);
 
     const parsed = parseCheckerResponse(raw);
     const canProceed = parsed.can_proceed === true || parsed.can_proceed === "true";
@@ -72,6 +51,16 @@ export async function POST(request) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
+    if (err?.status) {
+      return NextResponse.json(
+        {
+          error: message.includes("Together") ? "Together AI request failed" : "Ollama request failed",
+          status: err.status,
+          detail: err.detail,
+        },
+        { status: 502 },
+      );
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
