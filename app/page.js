@@ -65,6 +65,7 @@ export default function Home() {
   const [pdfScanImage, setPdfScanImage] = useState(null);
   const [fontSizeLevel, setFontSizeLevel] = useState(0);
   const [highContrast, setHighContrast] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const fileInputRef = useRef(null);
 
   const inTaskFlow = tasks.length > 0 && currentIndex < tasks.length;
@@ -190,6 +191,25 @@ export default function Home() {
           />
         </div>
       </header>
+
+      {!bannerDismissed && (
+        <div className="app-info-banner">
+          <div className="app-container flex items-start gap-3 py-3">
+            <p className="flex-1 text-xs leading-relaxed sm:text-sm">
+              <span className="font-medium">Note:</span> For best results please use text-based PDFs or paste
+              your assignment directly. Image/scanned PDF support is coming soon.
+            </p>
+            <button
+              type="button"
+              onClick={() => setBannerDismissed(true)}
+              className="app-info-banner-dismiss shrink-0"
+              aria-label="Dismiss notice"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className="app-container space-y-12 py-12 md:space-y-14 md:py-16">
         {!inTaskFlow && !allDone && (
